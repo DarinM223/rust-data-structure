@@ -6,6 +6,7 @@
 /// Use `use blah` to prefix a namespace so you can call it without the long namespace name
 mod stack;
 mod deque;
+mod queue;
 
 use std::rc::Rc;
 use std::cell::RefCell;
