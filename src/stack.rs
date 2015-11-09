@@ -16,27 +16,29 @@ use std::mem;
 /// you can just use the default primitives in Rust like Box instead of using 
 /// reference counting (so no runtime cost!)
 
+type Link<T> = Option<Box<Node<T>>>;
+
+/// Node for a singly linked list
 struct Node<T> {
     data: T,
     next: Link<T>,
 }
 
-type Link<T> = Option<Box<Node<T>>>;
-
-struct Stack<T> {
+/// Stack implementation using a singly linked list
+pub struct Stack<T> {
     size: i32,
     head: Link<T>,
 }
 
 impl<T: Debug> Stack<T> {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Stack {
             size: 0,
             head: None,
         }
     }
 
-    fn append(&mut self, data: T) {
+    pub fn push(&mut self, data: T) {
         // Rust note: if you use take() on an Option
         // it sets the original option to None and 
         // returns the value that was in the option.
@@ -51,7 +53,7 @@ impl<T: Debug> Stack<T> {
         self.size += 1;
     }
 
-    fn pop_front(&mut self) -> Option<T> {
+    pub fn pop(&mut self) -> Option<T> {
         // Rust note: if you set a reference to a property of a struct
         // you cannot set a reference to the actual struct but you can
         // set a reference to a different property of the same struct
@@ -68,7 +70,7 @@ impl<T: Debug> Stack<T> {
 
     // does the same thing as print_stack but inside the class
     // for notes about how it works, refer to print_stack
-    fn print(&self) {
+    pub fn print(&self) {
         let mut counter = &self.head;
         loop {
             match counter {
@@ -85,7 +87,7 @@ impl<T: Debug> Stack<T> {
 /// print_stack_node prints a stack node link in a recursive manner
 /// if a link is empty, return nothing, otherwise print the node and 
 /// recurse to the child
-fn print_stack_node<T: Debug>(n: & Link<T>) {
+fn print_stack_node<T: Debug>(n: &Link<T>) {
     match n {
         &Some(ref node) => {
             println!("{:?}", node.data);
@@ -96,12 +98,11 @@ fn print_stack_node<T: Debug>(n: & Link<T>) {
 }
 
 /// print_stack_recur recursively prints a stack
-/// 
-fn print_stack_recur<T: Debug>(s: &Stack<T>) {
+pub fn print_stack_recur<T: Debug>(s: &Stack<T>) {
     print_stack_node(&s.head);
 }
 
-fn print_stack<T: Debug>(s: &Stack<T>) {
+pub fn print_stack<T: Debug>(s: &Stack<T>) {
     // & means you can reference the variable, but you cannot mutate it
     // let mut means you can reassign it to other variables
     let mut counter = &s.head;
@@ -121,13 +122,13 @@ fn print_stack<T: Debug>(s: &Stack<T>) {
 }
 
 #[test]
-fn test_stack_append_and_pop() {
+fn test_stack_push_and_pop() {
     let mut stack = Stack::new();
-    stack.append(1);
-    stack.append(2);
+    stack.push(1);
+    stack.push(2);
 
     assert!(stack.size == 2);
-    assert!(stack.pop_front() == Some(2));
-    assert!(stack.pop_front() == Some(1));
-    assert!(stack.pop_front() == None);
+    assert!(stack.pop() == Some(2));
+    assert!(stack.pop() == Some(1));
+    assert!(stack.pop() == None);
 }

@@ -1,9 +1,11 @@
 #![feature(box_syntax)]
 #![feature(box_patterns)]
+#![feature(cell_extras)]
 
 /// Use `mod blah` to include a module in your crate/project
 /// Use `use blah` to prefix a namespace so you can call it without the long namespace name
 mod stack;
+mod deque;
 
 use std::rc::Rc;
 use std::cell::RefCell;
