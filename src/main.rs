@@ -7,6 +7,7 @@
 mod stack;
 mod deque;
 mod queue;
+mod unsafe_queue;
 
 use std::rc::Rc;
 use std::cell::RefCell;
