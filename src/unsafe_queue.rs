@@ -2,26 +2,29 @@ use std::ptr;
 
 pub struct List<T> {
     head: Link<T>,
-    tail: *mut Node<T> // unsafe pointer
+    tail: *mut Node<T>, // unsafe pointer
 }
 
 type Link<T> = Option<Box<Node<T>>>;
 
 struct Node<T> {
     elem: T,
-    next: Link<T>
+    next: Link<T>,
 }
 
 impl<T> List<T> {
     pub fn new() -> Self {
-        List { head: None, tail: ptr::null_mut() }
+        List {
+            head: None,
+            tail: ptr::null_mut(),
+        }
     }
 
     pub fn push(&mut self, elem: T) {
-        let mut new_tail = box Node {
+        let mut new_tail = Box::new(Node {
             elem: elem,
-            next: None
-        };
+            next: None,
+        });
 
         // get unsafe pointer to tail
         let raw_tail: *mut _ = &mut *new_tail;

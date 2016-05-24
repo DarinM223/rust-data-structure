@@ -1,13 +1,5 @@
-
 use std::rc::Rc;
-use std::cell::{RefCell, Ref};
-use std::collections::HashMap;
-use std::hash::Hash;
-use std::cmp::Eq;
-use std::clone::Clone;
-use std::fmt::Display;
-use std::fmt::Debug;
-use std::mem;
+use std::cell::RefCell;
 
 type Link<T> = Option<Rc<RefCell<Node<T>>>>;
 
@@ -36,7 +28,10 @@ pub struct Deque<T> {
 /// A deque implemented as a doubly linked list
 impl<T> Deque<T> {
     pub fn new() -> Self {
-        Deque { head: None, tail: None }
+        Deque {
+            head: None,
+            tail: None,
+        }
     }
 
     pub fn push_front(&mut self, data: T) {
@@ -44,10 +39,12 @@ impl<T> Deque<T> {
 
         match self.head.take() {
             Some(old_head) => {
-                // Rust note: increment the reference count by one (old_head has the "strong" reference to new_head)
+                // Rust note: increment the reference count by one
+                // (old_head has the "strong" reference to new_head)
                 old_head.borrow_mut().prev = Some(new_head.clone());
 
-                // Rust note: don't increment the reference count the other way (or you will get into a cycle!)
+                // Rust note: don't increment the reference count the other way
+                // (or you will get into a cycle!)
                 // (new_head has the "weak" reference to old_head)
                 new_head.borrow_mut().next = Some(old_head);
                 self.head = Some(new_head);
@@ -55,7 +52,7 @@ impl<T> Deque<T> {
             None => {
                 self.tail = Some(new_head.clone());
                 self.head = Some(new_head);
-            },
+            }
         };
     }
 
@@ -71,23 +68,20 @@ impl<T> Deque<T> {
             None => {
                 self.head = Some(new_tail.clone());
                 self.tail = Some(new_tail);
-            },
+            }
         };
     }
 
     pub fn pop_front(&mut self) -> Option<T> {
         self.head.take().map(|old_head| {
-            match old_head.borrow_mut().next.take() {
-                Some(new_head) => {
-                  new_head.borrow_mut().prev.take();
-                  self.head = Some(new_head);
-                },
-                None => {
-                  self.tail.take();
-                },
+            if let Some(new_head) = old_head.borrow_mut().next.take() {
+                new_head.borrow_mut().prev.take();
+                self.head = Some(new_head);
+            } else {
+                self.tail.take();
             }
 
-            // Rc::try_unwrap unwraps a reference counted pointer only if 
+            // Rc::try_unwrap unwraps a reference counted pointer only if
             // the reference count is 1
             Rc::try_unwrap(old_head).ok().unwrap().into_inner().data
         })
@@ -95,15 +89,13 @@ impl<T> Deque<T> {
 
     pub fn pop_back(&mut self) -> Option<T> {
         self.tail.take().map(|old_tail| {
-            match old_tail.borrow_mut().prev.take() {
-                Some(new_tail) => {
-                    new_tail.borrow_mut().next.take();
-                    self.tail = Some(new_tail);
-                }
-                None => {
-                    self.head.take();
-                }
+            if let Some(new_tail) = old_tail.borrow_mut().prev.take() {
+                new_tail.borrow_mut().next.take();
+                self.tail = Some(new_tail);
+            } else {
+                self.head.take();
             }
+
             Rc::try_unwrap(old_tail).ok().unwrap().into_inner().data
         })
     }
