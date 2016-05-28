@@ -1,9 +1,10 @@
-use std::fmt::Debug;
+//! A stack implementation using a normal Box
+//!
+//! A stack has no cycles like doubly linked lists or graphs
+//! so you can just use the default primitives like Box without
+//! having to use reference counting or pointers.
 
-/// A stack implementation in Rust
-/// For most things that don't have cycles (singly-linked lists, stacks, etc)
-/// you can just use the default primitives in Rust like Box instead of using
-/// reference counting (so no runtime cost!)
+use std::fmt::Debug;
 
 type Link<T> = Option<Box<Node<T>>>;
 

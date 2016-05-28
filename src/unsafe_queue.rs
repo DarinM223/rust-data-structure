@@ -1,15 +1,21 @@
+//! A queue implementation using raw pointers.
+//!
+//! It is more performant than reference counting
+//! but more unsafe because of the unsafe blocks
+//! and the pointer manipulation.
+
 use std::ptr;
-
-pub struct List<T> {
-    head: Link<T>,
-    tail: *mut Node<T>, // unsafe pointer
-}
-
-type Link<T> = Option<Box<Node<T>>>;
 
 struct Node<T> {
     elem: T,
     next: Link<T>,
+}
+
+type Link<T> = Option<Box<Node<T>>>;
+
+pub struct List<T> {
+    head: Link<T>,
+    tail: *mut Node<T>, // unsafe pointer
 }
 
 impl<T> List<T> {

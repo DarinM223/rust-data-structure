@@ -1,3 +1,9 @@
+//! A deque implementation using reference counting.
+//!
+//! It is completely safe because there are not unsafe
+//! blocks but it is less performant than using
+//! TypedArena + UnsafeCell or raw mutable pointers.
+
 use std::rc::Rc;
 use std::cell::RefCell;
 

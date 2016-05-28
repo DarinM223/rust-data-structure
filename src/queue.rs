@@ -1,7 +1,12 @@
-/// Queue implementation with two vectors
-/// enqueue values by pushing onto stack1
-/// dequeue by popping from stack2 and moving the reverse
-/// of stack1 onto stack2 whenever stack2 becomes empty
+//! A queue implementation using two stacks.
+//!
+//! To enqueue a new value you push onto the first stack.
+//! To dequeue you pop from the second stack and if the
+//! second stack is empty you reverse the first stack
+//! onto the second stack. It is completely safe but
+//! is less deterministic because of the occasional
+//! stack reversal.
+
 pub struct Queue<T> {
     stack1: Vec<T>,
     stack2: Vec<T>,
