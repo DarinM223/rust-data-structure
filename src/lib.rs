@@ -5,12 +5,13 @@
 extern crate arena;
 
 pub mod arena_deque;
+pub mod arena_graph;
 pub mod stack;
 pub mod deque;
 pub mod queue;
 pub mod unsafe_queue;
 
-pub use stack::Stack;
 pub use deque::Deque;
 pub use queue::Queue;
+pub use stack::Stack;
 pub use unsafe_queue::List;

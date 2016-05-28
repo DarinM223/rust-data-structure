@@ -15,9 +15,7 @@ pub struct Node<'a, T: 'a> {
     prev: UnsafeCell<Option<&'a Node<'a, T>>>,
 }
 
-impl<'a, T> Node<'a, T>
-    where T: 'a
-{
+impl<'a, T: 'a> Node<'a, T> {
     pub fn new<'b>(data: T, arena: &'b TypedArena<Node<'b, T>>) -> &'b Node<'b, T> {
         arena.alloc(Node {
             data: data,
