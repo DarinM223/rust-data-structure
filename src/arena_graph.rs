@@ -8,7 +8,8 @@
 
 use arena::TypedArena;
 use std::cell::UnsafeCell;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::i32;
 
 pub struct Node<'a, T: 'a> {
@@ -24,6 +25,18 @@ impl<'a, T> Node<'a, T> {
             data: data,
             edges: UnsafeCell::new(Vec::new()),
         })
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, PartialOrd)]
+pub struct NodeState {
+    id: i32,
+    cost: i32,
+}
+
+impl Ord for NodeState {
+    fn cmp(&self, other: &NodeState) -> Ordering {
+        other.cost.cmp(&self.cost)
     }
 }
 
@@ -110,6 +123,70 @@ impl<'a, T: Clone> Graph<'a, T> {
             }
         }
     }
+
+    pub fn dijkstra(&self, start: i32, end: i32) -> Vec<i32> {
+        // ID of node -> best distance from start to the node
+        let mut dist: HashMap<i32, i32> = HashMap::new();
+        // ID of node -> previous node ID for best path
+        let mut prev: HashMap<i32, Option<i32>> = HashMap::new();
+        // Checks if node has already been visited
+        let mut visited = HashMap::new();
+
+        // Initialize distances of nodes to 'infinity' and the previous link to None
+        self.bfs_map(|ref node| {
+            dist.insert(node.id, i32::MAX);
+            prev.insert(node.id, None);
+        });
+
+        let mut heap = BinaryHeap::new();
+        heap.push(NodeState {
+            id: start,
+            cost: 0,
+        });
+
+        while let Some(state) = heap.pop() {
+            visited.insert(state.id, true);
+
+            // Ignore states which have more distance than the best distance for the path
+            if state.cost > dist[&state.id] {
+                continue;
+            }
+
+            let node = match self.id_map.get(&state.id) {
+                Some(node) => *node,
+                _ => return vec![],
+            };
+
+            for &(edge_dist, edge) in unsafe { &*node.edges.get() } {
+                if !visited.contains_key(&edge.id) {
+                    let alt = state.cost + edge_dist;
+                    // If the state has less distance than the best distance, set the previous
+                    // node and set the best distance to the new smallest distance
+                    if alt < dist[&edge.id] {
+                        *dist.get_mut(&edge.id).unwrap() = alt;
+                        *prev.get_mut(&edge.id).unwrap() = Some(state.id);
+
+                        heap.push(NodeState {
+                            id: edge.id,
+                            cost: alt,
+                        });
+                    }
+                }
+            }
+        }
+
+        // Build path vector at the end
+        let mut path = VecDeque::new();
+        let mut curr_id = end;
+        path.push_front(end);
+
+        while let Some(prev_id) = prev[&curr_id] {
+            path.push_front(prev_id);
+            curr_id = prev_id;
+        }
+
+        path.into_iter().collect()
+    }
 }
 
 #[cfg(test)]
@@ -159,5 +236,35 @@ mod tests {
         graph.dfs_map(|ref node| results.push(node.data.clone()));
 
         assert_eq!(results, vec![2, 5, 6, 3, 4]);
+    }
+
+    #[test]
+    fn test_dijkstra() {
+        let arena = TypedArena::new();
+        let mut graph = Graph::new(2, &arena);
+
+        let two_node = graph.root;
+        let three_node = graph.add_node(3);
+        let four_node = graph.add_node(4);
+        let five_node = graph.add_node(5);
+
+        graph.add_edge(two_node, three_node, 24);
+        graph.add_edge(three_node, two_node, 24);
+
+        graph.add_edge(three_node, four_node, 20);
+        graph.add_edge(four_node, three_node, 20);
+
+        graph.add_edge(three_node, five_node, 3);
+        graph.add_edge(five_node, three_node, 3);
+
+        graph.add_edge(four_node, five_node, 12);
+        graph.add_edge(five_node, four_node, 12);
+
+        assert_eq!(graph.dijkstra(three_node, two_node),
+                   vec![three_node, two_node]);
+        assert_eq!(graph.dijkstra(three_node, five_node),
+                   vec![three_node, five_node]);
+        assert_eq!(graph.dijkstra(three_node, four_node),
+                   vec![three_node, five_node, four_node]);
     }
 }

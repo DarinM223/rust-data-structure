@@ -62,7 +62,6 @@ impl<T: Debug> Stack<T> {
     pub fn print(&self) {
         let mut counter = &self.head;
         while let Some(ref n) = *counter {
-            println!("{:?}", n.data);
             counter = &n.next;
         }
     }
@@ -74,7 +73,6 @@ impl<T: Debug> Stack<T> {
 fn print_stack_node<T: Debug>(n: &Link<T>) {
     match *n {
         Some(ref node) => {
-            println!("{:?}", node.data);
             print_stack_node(&node.next);
         }
         None => {}
@@ -91,7 +89,6 @@ pub fn print_stack<T: Debug>(s: &Stack<T>) {
     // let mut means you can reassign it to other variables
     let mut counter = &s.head;
     while let Some(ref node) = *counter {
-        println!("{:?}", node.data);
         counter = &node.next;
     }
 }
