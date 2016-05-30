@@ -9,11 +9,12 @@
 use arena::TypedArena;
 use std::cell::UnsafeCell;
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::i32;
 
 pub struct Node<'a, T: 'a> {
     id: i32,
     data: T,
-    edges: UnsafeCell<Vec<&'a Node<'a, T>>>,
+    edges: UnsafeCell<Vec<(i32, &'a Node<'a, T>)>>,
 }
 
 impl<'a, T> Node<'a, T> {
@@ -54,10 +55,10 @@ impl<'a, T: Clone> Graph<'a, T> {
         node_id
     }
 
-    pub fn add_edge(&self, from_id: i32, to_id: i32) {
+    pub fn add_edge(&self, from_id: i32, to_id: i32, cost: i32) {
         if let (Some(from), Some(to)) = (self.id_map.get(&from_id), self.id_map.get(&to_id)) {
             unsafe {
-                (*from.edges.get()).push(*to);
+                (*from.edges.get()).push((cost, *to));
             }
         }
     }
@@ -67,20 +68,20 @@ impl<'a, T: Clone> Graph<'a, T> {
     }
 
     pub fn bfs_map<U, F>(&self, mut func: F)
-        where F: FnMut(T) -> U
+        where F: FnMut(&Node<'a, T>) -> U
     {
         let mut queue = VecDeque::new();
         let mut explored_nodes = HashSet::new();
         match self.id_map.get(&self.root) {
-            Some(node) => queue.push_back(node),
-            _ => panic!("Root node not found"),
+            Some(node) => queue.push_back(*node),
+            _ => return,
         }
 
         while let Some(node) = queue.pop_front() {
-            func(node.data.clone());
+            func(&node);
             explored_nodes.insert(node.id);
 
-            for edge in unsafe { &*node.edges.get() } {
+            for &(_, edge) in unsafe { &*node.edges.get() } {
                 if !explored_nodes.contains(&edge.id) {
                     queue.push_back(edge);
                 }
@@ -89,20 +90,20 @@ impl<'a, T: Clone> Graph<'a, T> {
     }
 
     pub fn dfs_map<U, F>(&self, mut func: F)
-        where F: FnMut(T) -> U
+        where F: FnMut(&Node<'a, T>) -> U
     {
         let mut stack = Vec::new();
         let mut explored_nodes = HashSet::new();
         match self.id_map.get(&self.root) {
-            Some(node) => stack.push(node),
-            _ => panic!("Root node not found"),
+            Some(node) => stack.push(*node),
+            _ => return,
         }
 
         while let Some(node) = stack.pop() {
-            func(node.data.clone());
+            func(&node);
             explored_nodes.insert(node.id);
 
-            for edge in unsafe { &*node.edges.get() } {
+            for &(_, edge) in unsafe { &*node.edges.get() } {
                 if !explored_nodes.contains(&edge.id) {
                     stack.push(edge);
                 }
@@ -125,14 +126,14 @@ mod tests {
         let four_node = graph.add_node(4);
         let five_node = graph.add_node(5);
 
-        graph.add_edge(graph.root, three_node);
-        graph.add_edge(graph.root, five_node);
-        graph.add_edge(three_node, graph.root);
-        graph.add_edge(three_node, four_node);
-        graph.add_edge(four_node, five_node);
+        graph.add_edge(graph.root, three_node, 0);
+        graph.add_edge(graph.root, five_node, 0);
+        graph.add_edge(three_node, graph.root, 0);
+        graph.add_edge(three_node, four_node, 0);
+        graph.add_edge(four_node, five_node, 0);
 
         let mut results = Vec::new();
-        graph.bfs_map(|num| results.push(num));
+        graph.bfs_map(|ref node| results.push(node.data.clone()));
 
         assert_eq!(results, vec![2, 3, 5, 4]);
     }
@@ -147,15 +148,15 @@ mod tests {
         let five_node = graph.add_node(5);
         let six_node = graph.add_node(6);
 
-        graph.add_edge(graph.root, three_node);
-        graph.add_edge(graph.root, five_node);
-        graph.add_edge(three_node, graph.root);
-        graph.add_edge(three_node, four_node);
-        graph.add_edge(four_node, five_node);
-        graph.add_edge(five_node, six_node);
+        graph.add_edge(graph.root, three_node, 0);
+        graph.add_edge(graph.root, five_node, 0);
+        graph.add_edge(three_node, graph.root, 0);
+        graph.add_edge(three_node, four_node, 0);
+        graph.add_edge(four_node, five_node, 0);
+        graph.add_edge(five_node, six_node, 0);
 
         let mut results = Vec::new();
-        graph.dfs_map(|num| results.push(num));
+        graph.dfs_map(|ref node| results.push(node.data.clone()));
 
         assert_eq!(results, vec![2, 5, 6, 3, 4]);
     }
