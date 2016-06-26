@@ -6,6 +6,7 @@ extern crate arena;
 
 pub mod arena_deque;
 pub mod arena_graph;
+pub mod lru_cache;
 pub mod stack;
 pub mod deque;
 pub mod queue;
