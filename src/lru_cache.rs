@@ -21,7 +21,7 @@ impl<K, V> Node<K, V> {
     }
 }
 
-pub struct LRUCache<K: Eq + Hash, V> {
+pub struct LRUCache<K: Eq + Hash + Copy, V> {
     pub capacity: i32,
     pub count: i32,
     page_map: HashMap<K, *mut Node<K, V>>,
@@ -112,6 +112,24 @@ impl<K, V> LRUCache<K, V>
             self.add_to_front(new_node_ptr);
             self.page_map.insert(k, new_node_ptr);
             self.count += 1;
+        }
+    }
+}
+
+impl<K, V> Drop for LRUCache<K, V> where K: Eq + Hash + Copy
+{
+    fn drop(&mut self) {
+        // Null out front and back pointers
+        self.front = ptr::null_mut();
+        self.back = ptr::null_mut();
+
+        // For every key in the hashmap, convert the pointer into a Box and let it drop
+        let keys: Vec<_> = self.page_map.keys().map(|key| key.clone()).collect();
+        for key in keys {
+            let node = self.page_map.remove(&key).unwrap();
+            unsafe {
+                mem::transmute::<*mut Node<K, V>, Box<Node<K, V>>>(node);
+            }
         }
     }
 }
