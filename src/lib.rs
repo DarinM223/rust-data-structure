@@ -13,6 +13,7 @@ pub mod queue;
 pub mod unsafe_queue;
 
 pub use deque::Deque;
+pub use lru_cache::LRUCache;
 pub use queue::Queue;
 pub use stack::Stack;
 pub use unsafe_queue::List;

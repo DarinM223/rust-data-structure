@@ -1,8 +1,15 @@
+//! A LRU cache implementation using raw pointers.
+//!
+//! It is more performant than reference counting
+//! but more unsafe because of the unsafe blocks
+//! and the pointer manipulation.
+
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::mem;
 use std::ptr;
 
+/// A key-value node for a doubly linked list
 struct Node<K, V> {
     key: K,
     val: V,
@@ -21,6 +28,8 @@ impl<K, V> Node<K, V> {
     }
 }
 
+/// A cache that evicts least recently used nodes
+/// when exceeding given capacity
 pub struct LRUCache<K: Eq + Hash + Copy, V> {
     pub capacity: i32,
     pub count: i32,
@@ -33,6 +42,8 @@ impl<K, V> LRUCache<K, V>
     where K: Eq + Hash + Copy,
           V: Clone
 {
+    /// Create a new LRU cache with the given capacity (the maximum number
+    /// of items before evicting the least recently used item)
     pub fn new(capacity: i32) -> LRUCache<K, V> {
         LRUCache {
             capacity: capacity,
@@ -74,6 +85,7 @@ impl<K, V> LRUCache<K, V>
         }
     }
 
+    /// Retrieves and returns the value for the given key
     pub fn get(&mut self, k: K) -> Option<V> {
         if let Some(node) = self.page_map.remove(&k) {
             if node != self.front {
@@ -87,6 +99,7 @@ impl<K, V> LRUCache<K, V>
         }
     }
 
+    /// Sets a key value pair in the cache
     pub fn set(&mut self, k: K, v: V) {
         // Create the new front node
         let new_node = Box::new(Node::new(k, v));
@@ -116,7 +129,8 @@ impl<K, V> LRUCache<K, V>
     }
 }
 
-impl<K, V> Drop for LRUCache<K, V> where K: Eq + Hash + Copy
+impl<K, V> Drop for LRUCache<K, V>
+    where K: Eq + Hash + Copy
 {
     fn drop(&mut self) {
         // Null out front and back pointers
