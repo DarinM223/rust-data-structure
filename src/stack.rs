@@ -47,14 +47,13 @@ impl<T: Debug> Stack<T> {
         // Rust note: if you set a reference to a property of a struct
         // you cannot set a reference to the actual struct but you can
         // set a reference to a different property of the same struct
-        if let Some(old_head) = self.head.take() {
+        self.head.take().map(|old_head| {
             let old_head = *old_head;
             self.head = old_head.next;
             self.size -= 1;
-            Some(old_head.data)
-        } else {
-            None
-        }
+
+            old_head.data
+        })
     }
 
     // does the same thing as print_stack but inside the class
@@ -71,11 +70,8 @@ impl<T: Debug> Stack<T> {
 /// if a link is empty, return nothing, otherwise print the node and
 /// recurse to the child
 fn print_stack_node<T: Debug>(n: &Link<T>) {
-    match *n {
-        Some(ref node) => {
-            print_stack_node(&node.next);
-        }
-        None => {}
+    if let Some(ref node) = *n {
+        print_stack_node(&node.next);
     }
 }
 

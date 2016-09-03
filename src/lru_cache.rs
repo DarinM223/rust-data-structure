@@ -135,7 +135,8 @@ impl<K, V> LRUCache<K, V>
     }
 }
 
-impl<K, V> Drop for LRUCache<K, V> where K: Eq + Hash + Copy
+impl<K, V> Drop for LRUCache<K, V>
+    where K: Eq + Hash + Copy
 {
     fn drop(&mut self) {
         // Null out front and back pointers
